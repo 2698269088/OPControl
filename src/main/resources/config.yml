@@ -1,0 +1,25 @@
+# 是否拦截玩家执行的命令
+settings:
+  intercept-commands: true
+
+# 服务器服主名称
+server:
+  owner: ""
+
+# 白名单玩家列表（不受任何命令限制）
+# 注：有一些经过修改的服务端可能会将控制台当成玩家处理，此时的玩家名是CONSOLE，所以需要添加CONSOLE
+whitelist:
+  players:
+    - "CONSOLE"
+
+# 黑名单玩家列表
+blacklist:
+  players:
+    - "play1"
+    - "play2"
+
+# 拒绝执行的命令列表（不包含斜杠）
+blocked:
+  commands:
+    - "plugman"
+    - "vulcan"

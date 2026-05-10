@@ -1,0 +1,20 @@
+name: OPControl
+version: '1.0'
+main: top.mcocet.oPControl.OPControl
+api-version: '1.21'
+folia-supported: true
+authors: [ MCOCET ]
+description: 控制服务器中的管理员玩家，防止因为盗号或其他原因修改服务器设置
+website: https://home.mcocet.top
+
+commands:
+  opcontrol:
+    description: OPControl插件主命令
+    usage: /opcontrol
+    permission: opcontrol.use
+    aliases: [opc]
+
+permissions:
+  opcontrol.use:
+    description: 允许使用OPControl命令
+    default: op
