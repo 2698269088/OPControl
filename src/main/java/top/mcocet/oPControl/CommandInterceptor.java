@@ -127,11 +127,77 @@ public class CommandInterceptor implements Listener {
         }
         
         String targetName = parts[1];
+        
+        // 检查是否是坐标传送（第二个参数是数字）或选择器后跟坐标
+        // 例如：/tp @s 100 100 100 或 /tp 100 100 100
+        if (isCoordinateOrSelectorWithCoordinates(parts)) {
+            // 坐标传送，不需要拦截，允许执行
+            return;
+        }
+        
         boolean allowed = opCommandHandler.handleTpCommand(player, targetName);
         
         if (!allowed) {
             event.setCancelled(true);
         }
+    }
+    
+    /**
+     * 检查是否是坐标传送或选择器后跟坐标
+     * @param parts 命令参数数组
+     * @return 如果是坐标传送返回true
+     */
+    private boolean isCoordinateOrSelectorWithCoordinates(String[] parts) {
+        if (parts.length >= 4) {
+            // 检查是否有3个连续的数字参数（坐标）
+            // 可能的格式：
+            // /tp x y z
+            // /tp @s x y z
+            // /tp player x y z
+            
+            int startIndex = 1; // 从第一个参数开始检查
+            
+            // 如果第一个参数是选择器（@s, @p, @a, @r），则从第二个参数开始检查坐标
+            if (parts[1].startsWith("@")) {
+                startIndex = 2;
+            }
+            
+            // 检查是否有3个连续的坐标参数
+            if (parts.length > startIndex + 2) {
+                String param1 = parts[startIndex];
+                String param2 = parts[startIndex + 1];
+                String param3 = parts[startIndex + 2];
+                
+                // 检查这三个参数是否都是数字或相对坐标（~或^开头）
+                return isCoordinate(param1) && isCoordinate(param2) && isCoordinate(param3);
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 检查字符串是否是有效的坐标值
+     * @param value 要检查的值
+     * @return 如果是坐标返回true
+     */
+    private boolean isCoordinate(String value) {
+        // 绝对坐标：数字或负数
+        if (value.matches("^-?\\d+$")) {
+            return true;
+        }
+        // 小数坐标
+        if (value.matches("^-?\\d+\\.\\d+$")) {
+            return true;
+        }
+        // 相对坐标：~ 或 ~数字
+        if (value.equals("~") || value.matches("^~-?\\d*\\.?\\d*$")) {
+            return true;
+        }
+        // ^开头的局部坐标
+        if (value.startsWith("^") && (value.length() == 1 || value.substring(1).matches("^-?\\d*\\.?\\d*$"))) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -181,18 +247,49 @@ public class CommandInterceptor implements Listener {
 
     /**
      * 处理普通玩家执行的命令
-     * 根据配置文件控制（目前留空，后续扩展）
+     * 根据配置文件控制非OP玩家的命令执行
      */
     private void handlePlayerCommand(Player player, String command, PlayerCommandPreprocessEvent event) {
-        // TODO: 后续根据配置文件实现对普通玩家命令的控制
-        // 例如：
-        // - 检查是否允许执行该命令
-        // - 记录命令使用日志
-        // - 限制特定命令的使用频率
-        // - 等等...
+        // 检查是否启用非OP玩家命令控制
+        if (!configManager.isNonOpCommandControlEnabled()) {
+            return; // 未启用，允许执行
+        }
         
-        // 目前暂时允许普通玩家执行所有命令
-        // 可以在这里添加额外的检查逻辑
+        String mode = configManager.getNonOpCommandControlMode();
+        
+        if ("whitelist".equalsIgnoreCase(mode)) {
+            // 白名单模式：只允许执行白名单中的命令
+            handleWhitelistMode(player, command, event);
+        } else if ("blacklist".equalsIgnoreCase(mode)) {
+            // 黑名单模式：禁止执行黑名单中的命令
+            handleBlacklistMode(player, command, event);
+        }
+    }
+
+    /**
+     * 处理白名单模式：非OP玩家只能执行白名单中的命令
+     */
+    private void handleWhitelistMode(Player player, String command, PlayerCommandPreprocessEvent event) {
+        if (!configManager.isCommandInNonOpWhitelist(command)) {
+            // 命令不在白名单中，拒绝执行
+            event.setCancelled(true);
+            player.sendMessage("§c[OPControl] 你没有权限执行该命令！");
+            plugin.getLogger().info("非OP玩家 " + player.getName() + " 尝试执行未授权命令: /" + command);
+        }
+        // 命令在白名单中，允许执行
+    }
+
+    /**
+     * 处理黑名单模式：非OP玩家不能执行黑名单中的命令
+     */
+    private void handleBlacklistMode(Player player, String command, PlayerCommandPreprocessEvent event) {
+        if (configManager.isCommandInNonOpBlacklist(command)) {
+            // 命令在黑名单中，拒绝执行
+            event.setCancelled(true);
+            player.sendMessage("§c[OPControl] 你没有权限执行该命令！");
+            plugin.getLogger().info("非OP玩家 " + player.getName() + " 尝试执行被禁止的命令: /" + command);
+        }
+        // 命令不在黑名单中，允许执行
     }
 
     /**

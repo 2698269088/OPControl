@@ -313,14 +313,8 @@ public class OpCommandHandler implements Listener {
             
             // 执行传送（Folia兼容）
             if (target != null && target.isOnline()) {
-                // Folia: 必须使用 teleportAsync
-                executor.teleportAsync(target.getLocation()).thenAccept(success -> {
-                    if (success) {
-                        executor.sendMessage("§a已传送到 " + target.getName());
-                    } else {
-                        executor.sendMessage("§c[OPControl] 传送失败！");
-                    }
-                });
+                // 使用Folia兼容的传送方式
+                teleportPlayer(executor, target.getLocation(), target.getName());
             } else {
                 executor.sendMessage("§c[OPControl] 目标玩家已离线，无法传送！");
             }
@@ -414,6 +408,50 @@ public class OpCommandHandler implements Listener {
             responder.sendMessage("§c[OPControl] 已拒绝停止服务器");
             if (executor != null && executor.isOnline()) {
                 executor.sendMessage("§c[OPControl] 服主拒绝了停止服务器的请求");
+            }
+        }
+    }
+
+    /**
+     * Folia兼容的玩家传送方法
+     * 在Folia环境下使用teleportAsync，在普通环境下使用同步teleport
+     * @param player 要传送的玩家
+     * @param location 目标位置
+     * @param targetName 目标玩家名称（用于提示消息）
+     */
+    private void teleportPlayer(Player player, org.bukkit.Location location, String targetName) {
+        if (FoliaScheduler.isFolia()) {
+            // Folia: 使用 teleportAsync（通过反射调用，避免编译时依赖）
+            try {
+                java.lang.reflect.Method teleportAsyncMethod = Player.class.getMethod("teleportAsync", org.bukkit.Location.class);
+                @SuppressWarnings("unchecked")
+                java.util.concurrent.CompletableFuture<Boolean> future = 
+                    (java.util.concurrent.CompletableFuture<Boolean>) teleportAsyncMethod.invoke(player, location);
+                future.thenAccept(success -> {
+                    FoliaScheduler.run(plugin, () -> {
+                        if (success) {
+                            player.sendMessage("§a已传送到 " + targetName);
+                        } else {
+                            player.sendMessage("§c[OPControl] 传送失败！");
+                        }
+                    });
+                });
+            } catch (Exception e) {
+                // 反射失败，回退到同步传送
+                boolean success = player.teleport(location);
+                if (success) {
+                    player.sendMessage("§a已传送到 " + targetName);
+                } else {
+                    player.sendMessage("§c[OPControl] 传送失败！");
+                }
+            }
+        } else {
+            // 普通Bukkit/Paper: 使用同步teleport
+            boolean success = player.teleport(location);
+            if (success) {
+                player.sendMessage("§a已传送到 " + targetName);
+            } else {
+                player.sendMessage("§c[OPControl] 传送失败！");
             }
         }
     }

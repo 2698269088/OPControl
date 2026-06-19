@@ -2,6 +2,17 @@
 settings:
   intercept-commands: true
 
+# 管理员保护功能
+admin-protection:
+  # 是否启用管理员保护
+  enabled: false
+  # 受保护的管理员名单（必须是OP且在此列表中）
+  protected-admins:
+    - "AdminPlayer1"
+    - "AdminPlayer2"
+  # 是否保护装备耐久（启用后装备不会消耗耐久）
+  protect-durability: true
+
 # 服务器服主名称
 server:
   owner: ""
@@ -18,8 +29,39 @@ blacklist:
     - "play1"
     - "play2"
 
-# 拒绝执行的命令列表（不包含斜杠）
+# 拒绝执行的命令列表（不包含斜杠，适用于OP玩家）
 blocked:
   commands:
     - "plugman"
     - "vulcan"
+
+# 非OP玩家命令控制配置
+non-op-command-control:
+  # 是否启用非OP玩家命令控制
+  enabled: false
+  # 模式: whitelist（白名单模式，只允许执行白名单中的命令）或 blacklist（黑名单模式，禁止执行黑名单中的命令）
+  mode: "whitelist"
+  # 白名单命令列表（非OP玩家只能执行这些命令）
+  whitelist-commands:
+    - "help"
+    - "msg"
+    - "tell"
+    - "w"
+    - "me"
+    - "list"
+    - "home"
+    - "sethome"
+    - "spawn"
+    - "tpa"
+    - "tpaccept"
+    - "tpdeny"
+  # 黑名单命令列表（非OP玩家不能执行这些命令）
+  blacklist-commands:
+    - "op"
+    - "deop"
+    - "tp"
+    - "teleport"
+    - "gamemode"
+    - "gm"
+    - "stop"
+    - "reload"

@@ -110,6 +110,7 @@ blocked:
 
 | 命令 | 说明 | 风险等级 |
 |------|------|---------|
+| `/tp <玩家>` | 传送到服主 | ⚠️ 中 |
 | `/op <玩家>` | 给予OP权限 | 🔴 高 |
 | `/deop <玩家>` | 取消OP权限 | 🔴 高 |
 | `/stop` | 停止服务器 | 🔴 极高 |
@@ -119,11 +120,11 @@ blocked:
 #### 场景1：管理员尝试传送到服主
 
 ```
-1. 管理员 PlayAdmin2 执行: /tp PlayAdmin1
+1. 管理员 EnuFume 执行: /tp MCOCET
 2. 系统检测到目标为服主
-3. 向服主 PlayAdmin1 发送确认请求：
+3. 向服主 MCOCET 发送确认请求：
    ========== [OPControl] 传送请求 ==========
-   玩家 PlayAdmin2 请求传送到 PlayAdmin1
+   玩家 EnuFume 请求传送到 MCOCET
    
    [✓ 允许]  [✗ 拒绝]
    

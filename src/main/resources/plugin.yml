@@ -1,7 +1,7 @@
 name: OPControl
-version: '1.0'
+version: '1.4'
 main: top.mcocet.oPControl.OPControl
-api-version: '1.21'
+api-version: '1.13'
 folia-supported: true
 authors: [ MCOCET ]
 description: 控制服务器中的管理员玩家，防止因为盗号或其他原因修改服务器设置
